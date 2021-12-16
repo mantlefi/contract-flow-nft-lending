@@ -40,7 +40,7 @@ transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, expiredTime: UFix64
         let token <- collectionRef.withdraw(withdrawID: Id)
 
         // List the token for sale by moving it into the sale object
-        sale.listForRent(token: <-token,kind: Type<@Evolution.NFT>(),baseAmount: baseAmount, interest: interest, expiredTime: expiredTime)
+        sale.listForRent(owner: acct.address,token: <-token,kind: Type<@Evolution.NFT>(),baseAmount: baseAmount, interest: interest, expiredTime: expiredTime)
 
         // Store the sale object in the account storage 
         //acct.save(<-sale, to: /storage/NFTSale)

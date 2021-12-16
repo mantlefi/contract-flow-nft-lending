@@ -14,7 +14,7 @@ import FungibleToken from 0x04
 pub contract Rentplace {
 
     // Event that is emitted when a new NFT is put up for sale
-    pub event ForRent(address: PublicAccount?, kind: Type, id: UInt64,uuid:UInt64, baseAmount: UFix64, interest: UFix64, expiredTime: UFix64)
+    pub event ForRent(address: Address, kind: Type, id: UInt64,uuid:UInt64, baseAmount: UFix64, interest: UFix64, expiredTime: UFix64)
 
     // Event that is emitted when the price of an NFT changes
     pub event BaseAmountChanged(id: UInt64, newBaseAmount: UFix64)
@@ -24,13 +24,13 @@ pub contract Rentplace {
     pub event ExpiredBloockChanged(id: UInt64, newExpiredTime: UFix64)
     
     // Event that is emitted when a token is purchased
-    pub event NFTRented(address: Address, kind: Type,uuid: UInt64, BaseAmount: UFix64, Interest: UFix64, ExpiredTime: UFix64)
+    pub event NFTRented(address: Address, kind: Type,uuid: UInt64, baseAmount: UFix64, interest: UFix64, expiredTime: UFix64)
 
     // Event that is emitted when a token is 
-    pub event Repay(kind:Type, id: UInt64, repayAmount: UFix64, block: UInt64)
+    pub event Repay(kind:Type, id: UInt64, repayAmount: UFix64, time: UFix64)
 
     // Event that is emitted when a token is 
-    pub event ForcedRedeem(kind:Type, id: UInt64, block: UInt64)
+    pub event ForcedRedeem(kind:Type, id: UInt64, time: UFix64)
 
     // Event that is emitted when a holder withdraws their NFT from the rent
     pub event CaseWithdrawn(id: UInt64)
@@ -84,7 +84,7 @@ pub contract Rentplace {
         }
 
         // listForSale lists an NFT for sale in this collection
-        pub fun listForRent(token: @NonFungibleToken.NFT, kind: Type, baseAmount: UFix64, interest: UFix64, expiredTime: UFix64) {
+        pub fun listForRent(owner: Address, token: @NonFungibleToken.NFT, kind: Type, baseAmount: UFix64, interest: UFix64, expiredTime: UFix64) {
             let uuid = token.uuid
 
             // store the price in the price array
@@ -94,7 +94,7 @@ pub contract Rentplace {
 
             self.expiredTime[uuid] = expiredTime
 
-            emit ForRent( address: token.owner ,kind: kind, id:token.id, uuid: uuid, baseAmount: baseAmount, interest: interest, expiredTime: expiredTime)
+            emit ForRent( address: owner ,kind: kind, id:token.id, uuid: uuid, baseAmount: baseAmount, interest: interest, expiredTime: expiredTime)
 
             // put the NFT into the the forSale dictionary
             let oldToken <- self.forRent[uuid] <- token
@@ -172,7 +172,7 @@ pub contract Rentplace {
             // deposit the NFT into the buyers collection
             self.lenders[uuid] = recipient
 
-            emit NFTRented(address: recipient, kind: kind, uuid:uuid,BaseAmount: self.baseAmounts[uuid]!, Interest: self.interests[uuid]!, ExpiredTime: self.expiredTime[uuid]!)
+            emit NFTRented(address: recipient, kind: kind, uuid:uuid,baseAmount: self.baseAmounts[uuid]!, interest: self.interests[uuid]!, expiredTime: self.expiredTime[uuid]!)
         }
 
         //贖回
@@ -202,7 +202,7 @@ pub contract Rentplace {
 
             vaultRef.deposit(from: <-repayAmount)
 
-            emit Repay(kind:kind,id: uuid, repayAmount: _repayAmount, block: getCurrentBlock().height)
+            emit Repay(kind:kind,id: uuid, repayAmount: _repayAmount, time: getCurrentBlock().timestamp)
         }
 
         //強制清算
@@ -226,7 +226,7 @@ pub contract Rentplace {
             //vaultRef.deposit(token: <-self.withdraw(tokenID: tokenID))
             //let tokenref <-self.withdraw(tokenID: tokenID)
 
-            emit ForcedRedeem(kind:kind, id: uuid, block: getCurrentBlock().height)
+            emit ForcedRedeem(kind:kind, id: uuid, time: getCurrentBlock().timestamp)
 
             return <- self.withdraw(uuid: uuid)
         }
