@@ -38,7 +38,7 @@ transaction(SellerAddress: Address,BuyerAddress: Address, Id: UInt64, RentAmount
 
         // purchase the NFT the the seller is selling, giving them the reference
         // to your NFT collection and giving them the tokens to buy it
-        saleRef.rent(tokenID: Id,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, rentAmount: <-self.temporaryVault)
+        saleRef.rent(uuid: Id,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, rentAmount: <-self.temporaryVault)
 
         log("Token 1 has been bought by account 2!")
     }
