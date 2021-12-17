@@ -8,7 +8,7 @@ import Evolution from 0x02
 
 // This transaction uses the signers Vault tokens to purchase an NFT
 // from the Sale collection of account 0x01.
-transaction(SellerAddress: Address,BuyerAddress: Address, Id: UInt64, RentAmount: UFix64) {
+transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RentAmount: UFix64) {
 
     // reference to the buyer's NFT collection where they
     // will store the bought NFT
@@ -38,7 +38,7 @@ transaction(SellerAddress: Address,BuyerAddress: Address, Id: UInt64, RentAmount
 
         // purchase the NFT the the seller is selling, giving them the reference
         // to your NFT collection and giving them the tokens to buy it
-        saleRef.rent(uuid: Id,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, rentAmount: <-self.temporaryVault)
+        saleRef.rent(uuid: Uuid,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, rentAmount: <-self.temporaryVault)
 
         log("Token 1 has been bought by account 2!")
     }
