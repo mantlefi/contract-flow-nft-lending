@@ -35,7 +35,7 @@ transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RepayAmo
         let seller = getAccount(SellerAddress)
 
         // get the reference to the seller's sale
-        let saleRef = seller.getCapability<&AnyResource{Rentplace.RentPublic}>(/public/NFTRent)
+        let saleRef = seller.getCapability<&AnyResource{Rentplace.RentPublic}>(/public/NFTRent2)
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 

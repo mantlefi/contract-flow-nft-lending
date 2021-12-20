@@ -14,11 +14,11 @@ transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
 
     prepare(acct: AuthAccount) {
     //init
-     if acct.borrow<&AnyResource{Rentplace.RentPublic}>(from: /storage/NFTRent) == nil {
+     if acct.borrow<&AnyResource{Rentplace.RentPublic}>(from: /storage/NFTRent2) == nil {
        let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
         let sale <- Rentplace.createRentCollection(ownerVault: receiver)
-        acct.save(<-sale, to: /storage/NFTRent)
-        acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent, target: /storage/NFTRent)
+        acct.save(<-sale, to: /storage/NFTRent2)
+        acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
 
     }
 
@@ -28,7 +28,7 @@ transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
         // Create a new Sale object, 
         // initializing it with the reference to the owner's vault
 
-        let sale = acct.borrow<&Rentplace.RentCollection>(from: /storage/NFTRent)
+        let sale = acct.borrow<&Rentplace.RentCollection>(from: /storage/NFTRent2)
             ?? panic("Could not borrow owner's vault reference")
 
         // borrow a reference to the NFTCollection in storage
@@ -46,7 +46,7 @@ transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
         //acct.save(<-sale, to: /storage/NFTSale)
 
         // Create a public capability to the sale so that others can call its methods
-        acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent, target: /storage/NFTRent)
+        acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
 
         log("Rent Created for account 1")
     }
