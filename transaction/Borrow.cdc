@@ -10,7 +10,7 @@ import Evolution from 0x02
 // This transaction creates a new Sale Collection object,
 // lists an NFT for sale, puts it in account storage,
 // and creates a public capability to the sale so that others can buy the token.
-transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, expiredTime: UFix64){
+transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
 
     prepare(acct: AuthAccount) {
     //init
@@ -40,7 +40,7 @@ transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, expiredTime: UFix64
         let token <- collectionRef.withdraw(withdrawID: Id)
 
         // List the token for sale by moving it into the sale object
-        sale.listForRent(owner: acct.address,token: <-token,kind: Type<@Evolution.NFT>(),baseAmount: baseAmount, interest: interest, expiredTime: expiredTime)
+        sale.listForRent(owner: acct.address,token: <-token,kind: Type<@Evolution.NFT>(),baseAmount: baseAmount, interest: interest, duration: duration)
 
         // Store the sale object in the account storage 
         //acct.save(<-sale, to: /storage/NFTSale)
