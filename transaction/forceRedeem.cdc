@@ -34,7 +34,7 @@ transaction(Uuid: UInt64,SellerAddress: Address){
     
         // Withdraw the NFT from the collection that you want to sell
         // and move it into the transaction's context
-        collectionRef.deposit(token: returnNft)
+        collectionRef.deposit(token: <- returnNft)
 
     }
 }

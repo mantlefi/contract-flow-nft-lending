@@ -8,7 +8,7 @@ import Evolution from 0x02
 
 // This transaction uses the signers Vault tokens to purchase an NFT
 // from the Sale collection of account 0x01.
-transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RepayAmount: UFix64) {
+transaction(SellerAddress: Address, Uuid: UInt64, RepayAmount: UFix64) {
 
     // reference to the buyer's NFT collection where they
     // will store the bought NFT
