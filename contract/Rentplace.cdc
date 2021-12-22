@@ -2,18 +2,11 @@ import FlowToken from 0x05
 import NonFungibleToken from 0x03
 import FungibleToken from 0x04
 
-// Marketplace.cdc。   
-//
-// The Marketplace contract is a sample implementation of an NFT Marketplace on Flow.
-//
-// This contract allows users to put their NFTs up for sale. Other users
-// can purchase these NFTs with fungible tokens.
-//
-// Learn more about marketplaces in this tutorial: https://docs.onflow.org/docs/composable-smart-contracts-marketplace
+// Rentplace.cdc。   
 
 pub contract Rentplace {
 
-    // Event that is emitted when a new NFT is put up for sale
+    // Event that is emitted when a new NFT is put up for rent
     pub event ForRent(address: Address, kind: Type, id: UInt64,uuid:UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64)
 
     // Event that is emitted when the price of an NFT changes
@@ -23,19 +16,19 @@ pub contract Rentplace {
 
     pub event DurationChanged(id: UInt64, newDuration: UFix64)
     
-    // Event that is emitted when a token is purchased
+    // Event that is emitted when a token is rented
     pub event NFTRented(address: Address, kind: Type,uuid: UInt64, baseAmount: UFix64, interest: UFix64, beginningTime: UFix64, duration: UFix64)
 
-    // Event that is emitted when a token is 
+    // Event that is emitted when user repay
     pub event Repay(kind:Type, uuid: UInt64, repayAmount: UFix64, time: UFix64)
 
-    // Event that is emitted when a token is 
+    // Event that is emitted when user force redeem
     pub event ForcedRedeem(kind:Type, uuid: UInt64, time: UFix64)
 
     // Event that is emitted when a holder withdraws their NFT from the rent
     pub event CaseWithdrawn(id: UInt64)
 
-    // Interface that users will publish for their Sale collection
+    // Interface that users will publish for their Rent collection
     // that only exposes the methods that are supposed to be public
     //
     pub resource interface RentPublic {
@@ -49,7 +42,7 @@ pub contract Rentplace {
         pub fun getIDs(): [UInt64]
     }
 
-    // SaleCollection
+    // RentCollection
     //
     // NFT Collection object that allows a user to put their NFT up for sale
     // where others can send fungible tokens to purchase it
@@ -78,12 +71,12 @@ pub contract Rentplace {
             self.baseAmounts = {}
             self.interests = {}
             self.beginningTime = {}
-            self.duration = {} //ex: 5000秒
+            self.duration = {} //ex: 5000 seconds
 
             self.lenders = {}
         }
 
-        // listForSale lists an NFT for sale in this collection
+        // listForRent lists an NFT for rent in this collection
         pub fun listForRent(owner: Address, token: @NonFungibleToken.NFT, kind: Type, baseAmount: UFix64, interest: UFix64, duration: UFix64) {
             let uuid = token.uuid
 
@@ -96,13 +89,13 @@ pub contract Rentplace {
 
             emit ForRent( address: owner ,kind: kind, id:token.id, uuid: uuid, baseAmount: baseAmount, interest: interest, duration: duration)
 
-            // put the NFT into the the forSale dictionary
+            // put the NFT into the the forRent dictionary
             let oldToken <- self.forRent[uuid] <- token
             destroy oldToken
 
         }
 
-        // withdraw gives the owner the opportunity to remove a sale from the collection
+        // withdraw gives the owner the opportunity to remove a rent from the collection
         pub fun withdraw(uuid: UInt64): @NonFungibleToken.NFT {
             pre { self.lenders[uuid] == nil : "must not lenders in hosue"}
 
@@ -121,7 +114,7 @@ pub contract Rentplace {
             return <-token
         }
 
-        // changePrice changes the price of a token that is currently for sale
+        // changebaseAmount changes the amount of a token that is currently for rent
         pub fun changebaseAmount(uuid: UInt64, newBaseAmount: UFix64) {
             pre { self.lenders[uuid] == nil : "must not lenders in hosue"}
 
@@ -146,7 +139,7 @@ pub contract Rentplace {
             emit DurationChanged(id: uuid, newDuration: newDuration)
         }
 
-        // purchase lets a user send tokens to purchase an NFT that is for sale
+        // rent lets a user send tokens to purchase an NFT that is for rent
         pub fun rent(uuid: UInt64, kind: Type, recipient: Address, rentAmount: @FlowToken.Vault) {
             pre {
                 self.forRent[uuid] != nil && self.forRent[uuid] != nil:
@@ -169,13 +162,12 @@ pub contract Rentplace {
             // deposit the purchasing tokens into the owners vault
             vaultRef.deposit(from: <-rentAmount)
 
-            // deposit the NFT into the buyers collection
             self.lenders[uuid] = recipient
 
             emit NFTRented(address: recipient, kind: kind, uuid:uuid,baseAmount: self.baseAmounts[uuid]!, interest: self.interests[uuid]!, beginningTime: self.beginningTime[uuid]! , duration: self.duration[uuid]!)
         }
 
-        //贖回
+        //repay
         pub fun repay(uuid: UInt64, kind: Type, repayAmount: @FlowToken.Vault): @NonFungibleToken.NFT{
             pre {
                 self.forRent[uuid] != nil && self.forRent[uuid] != nil:
@@ -191,9 +183,9 @@ pub contract Rentplace {
                 (self.duration[uuid] ?? 0.0 as UFix64) + (self.beginningTime[uuid] ?? 0.0 as UFix64) >= getCurrentBlock().timestamp : "repay must under certain numbers of block"
             }
 
-            //付錢
-            let vaultRef = getAccount(self.lenders[uuid]!).getCapability<&{FungibleToken.Receiver}>(/public/MainReceiver)
-            .borrow() ?? panic("Could not borrow receiver reference")
+            //pay
+            let vaultRef = getAccount(self.lenders[uuid]!).getCapability(/public/flowTokenReceiver)
+                      .borrow<&FlowToken.Vault{FungibleToken.Receiver}>() ?? panic("Could not borrow receiver reference")
             
             self.lenders[uuid] = nil
             self.beginningTime[uuid] = nil
@@ -207,7 +199,7 @@ pub contract Rentplace {
             return <- self.withdraw(uuid: uuid)
         }
 
-        //強制清算
+        //forcedRedeem
         pub fun forcedRedeem(uuid: UInt64, kind: Type): @NonFungibleToken.NFT{
             pre {
                 self.forRent[uuid] != nil && self.forRent[uuid] != nil:
@@ -220,20 +212,16 @@ pub contract Rentplace {
                 (self.duration[uuid] ?? 0.0 as UFix64) + (self.beginningTime[uuid] ?? 0.0 as UFix64) < getCurrentBlock().timestamp : "ForcedRedeem must higher than certain numbers of block"
             }
 
-            //直接整坨拿走
-            //let vaultRef = getAccount(self.lenders[tokenID]!).getCapability<&{NonFungibleToken.NFTReceiver}>(/public/NFTReceiver)
-            //.borrow()
-            //?? panic("Could not borrow nft receiver reference")
-
-            //vaultRef.deposit(token: <-self.withdraw(tokenID: tokenID))
-            //let tokenref <-self.withdraw(tokenID: tokenID)
-
             emit ForcedRedeem(kind:kind, uuid: uuid, time: getCurrentBlock().timestamp)
+
+            self.lenders[uuid] = nil
+
+            self.beginningTime[uuid] = nil
 
             return <- self.withdraw(uuid: uuid)
         }
 
-        // idPrice returns the price of a specific token in the sale
+        // idBaseAmounts returns the amouny of a specific token in the rent
         pub fun idBaseAmounts(uuid: UInt64): UFix64? {
             return self.baseAmounts[uuid]
         }
