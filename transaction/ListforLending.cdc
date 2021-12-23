@@ -1,26 +1,23 @@
-import FungibleToken from 0x04
-import NonFungibleToken from 0x03
-import NFTLendingPlace from 0x01
-import FlowToken from 0x05 
-
-import Evolution from 0x02
-
-// This transaction creates a new Lending Collection object,
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
+import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS 
+import Evolution from 0xEVOLUTIONADDRESS
 // lists an NFT for lend, puts it in account storage,
 transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
 
     prepare(acct: AuthAccount) {
-        //init
-        if acct.borrow<&AnyResource{Rentplace.RentPublic}>(from: /storage/NFTRent2) == nil {
-        let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
-            let sale <- Rentplace.createRentCollection(ownerVault: receiver)
-            acct.save(<-sale, to: /storage/NFTRent2)
-            acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
-        }
+    //init
+     if acct.borrow<&AnyResource{NFTLendingPlace.LendingPublic}>(from: /storage/NFTRent2) == nil {
+       let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
+        let sale <- NFTLendingPlace.createLendingCollection(ownerVault: receiver)
+        acct.save(<-sale, to: /storage/NFTRent2)
+        acct.link<&NFTLendingPlace.LendingCollection{NFTLendingPlace.LendingPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
+    }
 
         let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
 
-        let sale = acct.borrow<&Rentplace.RentCollection>(from: /storage/NFTRent2)
+        let sale = acct.borrow<&NFTLendingPlace.LendingCollection>(from: /storage/NFTRent2)
             ?? panic("Could not borrow owner's vault reference")
 
         let collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
@@ -30,10 +27,10 @@ transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
         let token <- collectionRef.withdraw(withdrawID: Id)
 
         // List the token as a colletaral
-        sale.listForRent(owner: acct.address,token: <-token,kind: Type<@Evolution.NFT>(),baseAmount: baseAmount, interest: interest, duration: duration)
+        sale.listForLending(owner: acct.address,token: <-token,kind: Type<@Evolution.NFT>(),baseAmount: baseAmount, interest: interest, duration: duration)
 
 
-        acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
+        acct.link<&NFTLendingPlace.LendingCollection{NFTLendingPlace.LendingPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
     }
 }
  

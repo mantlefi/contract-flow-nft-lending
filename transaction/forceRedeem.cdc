@@ -1,10 +1,10 @@
 // Transaction1.cdc。  0x02
 
-import FungibleToken from 0x04
-import NonFungibleToken from 0x03
-import Rentplace from 0x01
-import FlowToken from 0x05 
-import Evolution from 0x02
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
+import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS 
+import Evolution from 0xEVOLUTIONADDRESS
 
 
 // This transaction let lender force get the borrower nft
@@ -15,7 +15,7 @@ transaction(Uuid: UInt64,SellerAddress: Address){
     
         let seller = getAccount(SellerAddress)
 
-        let saleRef = seller.getCapability<&AnyResource{Rentplace.RentPublic}>(/public/NFTRent2)
+        let saleRef = seller.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTRent2)
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 

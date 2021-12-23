@@ -1,5 +1,4 @@
-// Transaction2.cdc.  0x02 專用
-
+//for testing
 import NonFungibleToken from 0x03
 import FungibleToken from 0x04
 import Evolution from 0x02
@@ -7,7 +6,6 @@ import Evolution from 0x02
 // This transaction allows the Minter account to mint an NFT
 // and deposit it into its collection.
 
-//前端要可以知道我手中有哪些 NFT
 
 
 transaction {

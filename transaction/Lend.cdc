@@ -1,10 +1,8 @@
-// Transaction2.cdc.  0x01專用
-
-import FungibleToken from 0x04
-import FlowToken from 0x05 
-import NonFungibleToken from 0x03
-import Rentplace from 0x01
-import Evolution from 0x02
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
+import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS 
+import Evolution from 0xEVOLUTIONADDRESS
 
 // This transaction let lender lend the flow to borrower
 transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RentAmount: UFix64) {
@@ -22,11 +20,11 @@ transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RentAmou
     execute {
         let seller = getAccount(SellerAddress)
 
-        let saleRef = seller.getCapability<&AnyResource{Rentplace.RentPublic}>(/public/NFTRent2)
+        let saleRef = seller.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTRent2)
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 
-        saleRef.rent(uuid: Uuid,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, rentAmount: <-self.temporaryVault)
+        saleRef.lend(uuid: Uuid,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, lendAmount: <-self.temporaryVault)
 
     }
 }
