@@ -6,7 +6,7 @@ import FungibleToken from 0x04
 
 pub contract Rentplace {
 
-    // Event that is emitted when a new NFT is put up for rent
+    // Event that is emitted when a new NFT is put up as a colletaral
     pub event ForRent(address: Address, kind: Type, id: UInt64,uuid:UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64)
 
     // Event that is emitted when the price of an NFT changes
@@ -16,7 +16,7 @@ pub contract Rentplace {
 
     pub event DurationChanged(id: UInt64, newDuration: UFix64)
     
-    // Event that is emitted when a token is rented
+    // Event that is emitted when a token been use as a colleteral
     pub event NFTRented(address: Address, kind: Type,uuid: UInt64, baseAmount: UFix64, interest: UFix64, beginningTime: UFix64, duration: UFix64)
 
     // Event that is emitted when user repay
@@ -25,7 +25,7 @@ pub contract Rentplace {
     // Event that is emitted when user force redeem
     pub event ForcedRedeem(kind:Type, uuid: UInt64, time: UFix64)
 
-    // Event that is emitted when a holder withdraws their NFT from the rent
+    // Event that is emitted when a holder withdraws their NFT from the lend
     pub event CaseWithdrawn(id: UInt64)
 
     // Interface that users will publish for their Rent collection
@@ -44,12 +44,12 @@ pub contract Rentplace {
 
     // RentCollection
     //
-    // NFT Collection object that allows a user to put their NFT up for sale
+    // NFT Collection object that allows a user to put their NFT as a colletaral
     // where others can send fungible tokens to purchase it
     //
     pub resource RentCollection: RentPublic {
 
-        // Dictionary of the NFTs that the user is putting up for sale
+        // Dictionary of the NFTs that the user is putting up for lending
         pub var forRent: @{UInt64: NonFungibleToken.NFT}
 
         // Dictionary of the prices for each NFT by ID
@@ -59,8 +59,8 @@ pub contract Rentplace {
         pub var beginningTime: {UInt64: UFix64}
         pub var lenders: {UInt64: Address}
 
-        // The fungible token vault of the owner of this sale.
-        // When someone buys a token, this resource can deposit
+        // The fungible token vault of the owner of this lending.
+        // When someone lend a token, this resource can deposit
         // tokens into their account.
         access(account) let ownerVault: Capability<&FlowToken.Vault{FungibleToken.Receiver}>
 
@@ -76,7 +76,7 @@ pub contract Rentplace {
             self.lenders = {}
         }
 
-        // listForRent lists an NFT for rent in this collection
+        // listForRent lists an NFT as a colleteral
         pub fun listForRent(owner: Address, token: @NonFungibleToken.NFT, kind: Type, baseAmount: UFix64, interest: UFix64, duration: UFix64) {
             let uuid = token.uuid
 
@@ -95,7 +95,7 @@ pub contract Rentplace {
 
         }
 
-        // withdraw gives the owner the opportunity to remove a rent from the collection
+        // withdraw gives the owner the opportunity to remove a nft as a colleteral
         pub fun withdraw(uuid: UInt64): @NonFungibleToken.NFT {
             pre { self.lenders[uuid] == nil : "must not lenders in hosue"}
 
@@ -114,7 +114,7 @@ pub contract Rentplace {
             return <-token
         }
 
-        // changebaseAmount changes the amount of a token that is currently for rent
+        // changebaseAmount changes the amount of a token that is currently for lending
         pub fun changebaseAmount(uuid: UInt64, newBaseAmount: UFix64) {
             pre { self.lenders[uuid] == nil : "must not lenders in hosue"}
 
@@ -139,7 +139,7 @@ pub contract Rentplace {
             emit DurationChanged(id: uuid, newDuration: newDuration)
         }
 
-        // rent lets a user send tokens to purchase an NFT that is for rent
+        // rent lets a user send tokens to purchase an NFT that is for lending
         pub fun rent(uuid: UInt64, kind: Type, recipient: Address, rentAmount: @FlowToken.Vault) {
             pre {
                 self.forRent[uuid] != nil && self.forRent[uuid] != nil:
@@ -221,7 +221,7 @@ pub contract Rentplace {
             return <- self.withdraw(uuid: uuid)
         }
 
-        // idBaseAmounts returns the amouny of a specific token in the rent
+        // idBaseAmounts returns the amouny of a specific token in the lending
         pub fun idBaseAmounts(uuid: UInt64): UFix64? {
             return self.baseAmounts[uuid]
         }
@@ -238,7 +238,7 @@ pub contract Rentplace {
             return self.lenders[uuid]
         }
 
-        // getIDs returns an array of token IDs that are for sale
+        // getIDs returns an array of token IDs that are colleteral
         pub fun getIDs(): [UInt64] {
             return self.forRent.keys
         }
