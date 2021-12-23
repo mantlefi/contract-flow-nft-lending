@@ -2,22 +2,22 @@ import FlowToken from 0x05
 import NonFungibleToken from 0x03
 import FungibleToken from 0x04
 
-// Rentplace.cdc。   
-
-pub contract Rentplace {
+pub contract NFTLendingPlace {
 
     // Event that is emitted when a new NFT is put up as a colletaral
-    pub event ForRent(address: Address, kind: Type, id: UInt64,uuid:UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64)
+    pub event ForLend(address: Address, kind: Type, id: UInt64,uuid:UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64)
 
-    // Event that is emitted when the price of an NFT changes
+    // Event that is emitted when the borrowing amount of an NFT changes
     pub event BaseAmountChanged(id: UInt64, newBaseAmount: UFix64)
 
+    // Event that is emitted when the borrowing fee of an NFT changes
     pub event InterestChanged(id: UInt64, newInterest: UFix64)
 
+    // Event that is emitted when the timers of an NFT changes
     pub event DurationChanged(id: UInt64, newDuration: UFix64)
     
     // Event that is emitted when a token been use as a colleteral
-    pub event NFTRented(address: Address, kind: Type,uuid: UInt64, baseAmount: UFix64, interest: UFix64, beginningTime: UFix64, duration: UFix64)
+    pub event NFTLent(address: Address, kind: Type,uuid: UInt64, baseAmount: UFix64, interest: UFix64, beginningTime: UFix64, duration: UFix64)
 
     // Event that is emitted when user repay
     pub event Repay(kind:Type, uuid: UInt64, repayAmount: UFix64, time: UFix64)
@@ -25,14 +25,14 @@ pub contract Rentplace {
     // Event that is emitted when user force redeem
     pub event ForcedRedeem(kind:Type, uuid: UInt64, time: UFix64)
 
-    // Event that is emitted when a holder withdraws their NFT from the lend
+    // Event that is emitted when a holder withdraws their NFT from the lending resource
     pub event CaseWithdrawn(id: UInt64)
 
-    // Interface that users will publish for their Rent collection
+    // Interface that users will publish for their Lending collection
     // that only exposes the methods that are supposed to be public
     //
-    pub resource interface RentPublic {
-        pub fun rent(uuid: UInt64, kind: Type, recipient: Address, rentAmount: @FlowToken.Vault)
+    pub resource interface LendingPublic {
+        pub fun lend(uuid: UInt64, kind: Type, recipient: Address, lendAmount: @FlowToken.Vault)
         pub fun repay(uuid: UInt64, kind: Type, repayAmount: @FlowToken.Vault): @NonFungibleToken.NFT
         pub fun forcedRedeem(uuid: UInt64, kind: Type): @NonFungibleToken.NFT
         pub fun idBaseAmounts(uuid: UInt64): UFix64?
@@ -42,15 +42,15 @@ pub contract Rentplace {
         pub fun getIDs(): [UInt64]
     }
 
-    // RentCollection
+    // LendingCollection
     //
     // NFT Collection object that allows a user to put their NFT as a colletaral
-    // where others can send fungible tokens to purchase it
+    // where others can send fungible tokens to lending it
     //
-    pub resource RentCollection: RentPublic {
+    pub resource LendingCollection: LendingPublic {
 
         // Dictionary of the NFTs that the user is putting up for lending
-        pub var forRent: @{UInt64: NonFungibleToken.NFT}
+        pub var forLend: @{UInt64: NonFungibleToken.NFT}
 
         // Dictionary of the prices for each NFT by ID
         pub var baseAmounts: {UInt64: UFix64}
@@ -65,7 +65,7 @@ pub contract Rentplace {
         access(account) let ownerVault: Capability<&FlowToken.Vault{FungibleToken.Receiver}>
 
         init (vault: Capability<&FlowToken.Vault{FungibleToken.Receiver}>) {
-            self.forRent <- {}
+            self.forLend <- {}
 
             self.ownerVault = vault
             self.baseAmounts = {}
@@ -76,8 +76,8 @@ pub contract Rentplace {
             self.lenders = {}
         }
 
-        // listForRent lists an NFT as a colleteral
-        pub fun listForRent(owner: Address, token: @NonFungibleToken.NFT, kind: Type, baseAmount: UFix64, interest: UFix64, duration: UFix64) {
+        // listForLending lists an NFT as a colleteral
+        pub fun listForLending(owner: Address, token: @NonFungibleToken.NFT, kind: Type, baseAmount: UFix64, interest: UFix64, duration: UFix64) {
             let uuid = token.uuid
 
             // store the price in the price array
@@ -87,10 +87,10 @@ pub contract Rentplace {
 
             self.duration[uuid] = duration
 
-            emit ForRent( address: owner ,kind: kind, id:token.id, uuid: uuid, baseAmount: baseAmount, interest: interest, duration: duration)
+            emit ForLend( address: owner ,kind: kind, id:token.id, uuid: uuid, baseAmount: baseAmount, interest: interest, duration: duration)
 
-            // put the NFT into the the forRent dictionary
-            let oldToken <- self.forRent[uuid] <- token
+            // put the NFT into the the ForLend dictionary
+            let oldToken <- self.forLend[uuid] <- token
             destroy oldToken
 
         }
@@ -110,7 +110,7 @@ pub contract Rentplace {
             emit CaseWithdrawn(id: uuid)
 
             // remove and return the token
-            let token <- self.forRent.remove(key: uuid) ?? panic("missing NFT")
+            let token <- self.forLend.remove(key: uuid) ?? panic("missing NFT")
             return <-token
         }
 
@@ -139,13 +139,13 @@ pub contract Rentplace {
             emit DurationChanged(id: uuid, newDuration: newDuration)
         }
 
-        // rent lets a user send tokens to purchase an NFT that is for lending
-        pub fun rent(uuid: UInt64, kind: Type, recipient: Address, rentAmount: @FlowToken.Vault) {
+        // lend lets a user send tokens to lend an NFT 
+        pub fun lend(uuid: UInt64, kind: Type, recipient: Address, lendAmount: @FlowToken.Vault) {
             pre {
-                self.forRent[uuid] != nil && self.forRent[uuid] != nil:
-                    "No token matching this ID for rent!"
+                self.forLend[uuid] != nil && self.forLend[uuid] != nil:
+                    "No token matching this ID for lending!"
 
-                rentAmount.balance >= (self.baseAmounts[uuid] ?? 0.0):
+                lendAmount.balance >= (self.baseAmounts[uuid] ?? 0.0):
                     "Not enough tokens to lend the NFT!"
 
                 self.lenders[uuid] == nil : "must no lender for this nft"
@@ -160,18 +160,18 @@ pub contract Rentplace {
                 ?? panic("Could not borrow reference to owner token vault")
             
             // deposit the purchasing tokens into the owners vault
-            vaultRef.deposit(from: <-rentAmount)
+            vaultRef.deposit(from: <- lendAmount)
 
             self.lenders[uuid] = recipient
 
-            emit NFTRented(address: recipient, kind: kind, uuid:uuid,baseAmount: self.baseAmounts[uuid]!, interest: self.interests[uuid]!, beginningTime: self.beginningTime[uuid]! , duration: self.duration[uuid]!)
+            emit NFTLent(address: recipient, kind: kind, uuid:uuid,baseAmount: self.baseAmounts[uuid]!, interest: self.interests[uuid]!, beginningTime: self.beginningTime[uuid]! , duration: self.duration[uuid]!)
         }
 
         //repay
         pub fun repay(uuid: UInt64, kind: Type, repayAmount: @FlowToken.Vault): @NonFungibleToken.NFT{
             pre {
-                self.forRent[uuid] != nil && self.forRent[uuid] != nil:
-                    "No token matching this ID for sale!"
+                self.forLend[uuid] != nil && self.forLend[uuid] != nil:
+                    "No token matching this ID for leding!"
 
                 repayAmount.balance >= (self.baseAmounts[uuid] ?? 0.0) + (self.interests[uuid] ?? 0.0):
                     "Not enough tokens to repay this NFT!"
@@ -202,8 +202,8 @@ pub contract Rentplace {
         //forcedRedeem
         pub fun forcedRedeem(uuid: UInt64, kind: Type): @NonFungibleToken.NFT{
             pre {
-                self.forRent[uuid] != nil && self.forRent[uuid] != nil:
-                    "No token matching this ID for sale!"
+                self.forLend[uuid] != nil && self.forLend[uuid] != nil:
+                    "No token matching this ID for lending!"
 
                 self.lenders[uuid] != nil : "case must have a lender"
 
@@ -240,17 +240,17 @@ pub contract Rentplace {
 
         // getIDs returns an array of token IDs that are colleteral
         pub fun getIDs(): [UInt64] {
-            return self.forRent.keys
+            return self.forLend.keys
         }
 
         destroy() {
-            destroy self.forRent
+            destroy self.forLend
         }
     }
 
     // createCollection returns a new collection resource to the caller
-    pub fun createRentCollection(ownerVault: Capability<&FlowToken.Vault{FungibleToken.Receiver}>): @RentCollection {
-        return <- create RentCollection(vault: ownerVault)
+    pub fun createLendingCollection(ownerVault: Capability<&FlowToken.Vault{FungibleToken.Receiver}>): @LendingCollection {
+        return <- create LendingCollection(vault: ownerVault)
     }
 }
  

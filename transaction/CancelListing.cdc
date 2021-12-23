@@ -1,9 +1,8 @@
 import NonFungibleToken from 0x03
-import Rentplace from 0x01
+import NFTLendingPlace from 0x01
 import Evolution from 0x02
 
-
-// cancel the borrow list
+// cancel/withdraw the listed NFT from NFTLendingPlace's resource
 transaction(Uuid: UInt64){
 
     prepare(acct: AuthAccount) {

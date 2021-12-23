@@ -1,25 +1,22 @@
-// Transaction1.cdc。  0x02
-
 import FungibleToken from 0x04
 import NonFungibleToken from 0x03
-import Rentplace from 0x01
+import NFTLendingPlace from 0x01
 import FlowToken from 0x05 
+
 import Evolution from 0x02
 
-
-// This transaction creates a new Lend Collection object,
+// This transaction creates a new Lending Collection object,
 // lists an NFT for lend, puts it in account storage,
 transaction(Id: UInt64,baseAmount: UFix64, interest: UFix64, duration: UFix64){
 
     prepare(acct: AuthAccount) {
-    //init
-     if acct.borrow<&AnyResource{Rentplace.RentPublic}>(from: /storage/NFTRent2) == nil {
-       let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
-        let sale <- Rentplace.createRentCollection(ownerVault: receiver)
-        acct.save(<-sale, to: /storage/NFTRent2)
-        acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
-
-    }
+        //init
+        if acct.borrow<&AnyResource{Rentplace.RentPublic}>(from: /storage/NFTRent2) == nil {
+        let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
+            let sale <- Rentplace.createRentCollection(ownerVault: receiver)
+            acct.save(<-sale, to: /storage/NFTRent2)
+            acct.link<&Rentplace.RentCollection{Rentplace.RentPublic}>(/public/NFTRent2, target: /storage/NFTRent2)
+        }
 
         let receiver = acct.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)
 
