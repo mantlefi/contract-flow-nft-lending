@@ -1,11 +1,11 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
 import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS 
+import FlowToken from 0xFLOWTOKENADDRESS
 import Evolution from 0xEVOLUTIONADDRESS
 
 // This transaction let lender lend the flow to borrower
-transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RentAmount: UFix64) {
+transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, LendAmount: UFix64) {
 
     let temporaryVault: @FlowToken.Vault
 
@@ -14,18 +14,17 @@ transaction(SellerAddress: Address,BuyerAddress: Address, Uuid: UInt64, RentAmou
         let vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow owner's vault reference")
 
-        self.temporaryVault <- vaultRef.withdraw(amount: RentAmount) as! @FlowToken.Vault
+        self.temporaryVault <- vaultRef.withdraw(amount: LendAmount) as! @FlowToken.Vault
     }
 
     execute {
-        let seller = getAccount(SellerAddress)
 
-        let saleRef = seller.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTRent2)
+        let borrower = getAccount(BorrowerAddress)
+
+        let lendingPlaceRef = borrower.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace)
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 
-        saleRef.lend(uuid: Uuid,kind: Type<@Evolution.NFT>(), recipient: BuyerAddress, lendAmount: <-self.temporaryVault)
-
+        lendingPlaceRef.lend(uuid: Uuid, kind: Type<@Evolution.NFT>(), recipient: LenderAddress, lendAmount: <-self.temporaryVault)
     }
 }
- 

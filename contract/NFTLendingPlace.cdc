@@ -164,7 +164,7 @@ pub contract NFTLendingPlace {
 
             self.lenders[uuid] = recipient
 
-            emit NFTLent(address: recipient, kind: kind, uuid:uuid,baseAmount: self.baseAmounts[uuid]!, interest: self.interests[uuid]!, beginningTime: self.beginningTime[uuid]! , duration: self.duration[uuid]!)
+            emit NFTLent(address: recipient, kind: kind, uuid:uuid, baseAmount: self.baseAmounts[uuid]!, interest: self.interests[uuid]!, beginningTime: self.beginningTime[uuid]! , duration: self.duration[uuid]!)
         }
 
         //repay
