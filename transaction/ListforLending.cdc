@@ -27,7 +27,7 @@ transaction(id: UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64) 
         let token <- collectionRef.withdraw(withdrawID: id)
 
         // List the token as a colletaral
-        lendingPlace.listForLending(owner: acct.address, token: <-token, kind: Type<@Evolution.NFT>(), baseAmount: baseAmount, interest: interest, duration: duration)
+        lendingPlace.listForLending(owner: acct.address, token: <-token, baseAmount: baseAmount, interest: interest, duration: duration)
 
         acct.link<&NFTLendingPlace.LendingCollection{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace, target: /storage/NFTLendingPlace)
     }

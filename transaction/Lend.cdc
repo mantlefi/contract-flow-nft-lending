@@ -9,7 +9,18 @@ transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, Lend
 
     let temporaryVault: @FlowToken.Vault
 
+    let ticketRef:  &NFTLendingPlace.LenderTicket
+
     prepare(acct: AuthAccount) {
+
+        // Init
+        if acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTIcket) == nil {
+            let lendingTicket <- NFTLendingPlace.createLenderTicket()
+            acct.save(<-lendingTicket, to: /storage/NFTLendingPlaceLenderTIcket)
+        }
+
+        self.ticketRef = acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTIcket)
+            ?? panic("Could not borrow a reference to the owner's LenderTicket")
 
         let vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow owner's vault reference")
@@ -25,6 +36,6 @@ transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, Lend
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 
-        lendingPlaceRef.lend(uuid: Uuid, kind: Type<@Evolution.NFT>(), recipient: LenderAddress, lendAmount: <-self.temporaryVault)
+        lendingPlaceRef.lend(uuid: Uuid, recipient: LenderAddress, lendAmount: <-self.temporaryVault, ticket:  self.ticketRef)
     }
 }

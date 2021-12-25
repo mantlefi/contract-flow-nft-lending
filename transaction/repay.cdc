@@ -29,7 +29,7 @@ transaction(BorrowerAddress: Address, Uuid: UInt64, RepayAmount: UFix64) {
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 
-        let returnNft <- landingPlaceRef.repay(uuid: Uuid, kind: Type<@Evolution.NFT>(), repayAmount: <-self.temporaryVault)
+        let returnNft <- landingPlaceRef.repay(uuid: Uuid, repayAmount: <-self.temporaryVault)
 
         self.collectionRef.deposit(token: <-returnNft)
     }
