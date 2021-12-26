@@ -37,7 +37,6 @@ pub contract NFTLendingPlace {
     }
     pub resource interface LendingPublic {
         pub fun lend(uuid: UInt64, recipient: Address, lendAmount: @FlowToken.Vault, ticket: &LenderTicket)
-        pub fun repay(uuid: UInt64, repayAmount: @FlowToken.Vault): @NonFungibleToken.NFT
         pub fun forcedRedeem(uuid: UInt64,  lendticket: &LenderTicket): @NonFungibleToken.NFT
         pub fun idBaseAmounts(uuid: UInt64): UFix64?
         pub fun idInterests(uuid: UInt64): UFix64?

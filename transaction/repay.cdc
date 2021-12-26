@@ -5,10 +5,11 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import Evolution from 0xEVOLUTIONADDRESS
 
 // This transaction let borrower repay the Flow
-transaction(BorrowerAddress: Address, Uuid: UInt64, RepayAmount: UFix64) {
+transaction(Uuid: UInt64, RepayAmount: UFix64) {
 
     let temporaryVault: @FlowToken.Vault
     let collectionRef: &NonFungibleToken.Collection
+    let landingPlaceRef: &NFTLendingPlace.LendingCollection
 
     prepare(acct: AuthAccount) {
 
@@ -19,17 +20,12 @@ transaction(BorrowerAddress: Address, Uuid: UInt64, RepayAmount: UFix64) {
 
         self.collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
             ?? panic("Could not borrow owner's nft collection reference")
+         self.landingPlaceRef =  acct.borrow<&NFTLendingPlace.LendingCollection>(from: /storage/NFTLendingPlaceLenderTIcket)
+            ?? panic("Could not borrow a reference to the owner's LenderTicket")
     }
 
     execute {
-
-        let borrower = getAccount(BorrowerAddress)
-
-        let landingPlaceRef = borrower.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace)
-            .borrow()
-            ?? panic("Could not borrow seller's sale reference")
-
-        let returnNft <- landingPlaceRef.repay(uuid: Uuid, repayAmount: <-self.temporaryVault)
+        let returnNft <- self.landingPlaceRef.repay(uuid: Uuid, repayAmount: <-self.temporaryVault)
 
         self.collectionRef.deposit(token: <-returnNft)
     }
