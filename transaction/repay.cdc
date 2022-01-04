@@ -20,7 +20,7 @@ transaction(Uuid: UInt64, RepayAmount: UFix64) {
 
         self.collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
             ?? panic("Could not borrow owner's nft collection reference")
-         self.landingPlaceRef =  acct.borrow<&NFTLendingPlace.LendingCollection>(from: /storage/NFTLendingPlaceLenderTIcket)
+         self.landingPlaceRef =  acct.borrow<&NFTLendingPlace.LendingCollection>(from: /storage/NFTLendingPlace)
             ?? panic("Could not borrow a reference to the owner's LenderTicket")
     }
 
