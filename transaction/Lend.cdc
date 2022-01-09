@@ -17,10 +17,10 @@ transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, Lend
         }
 
         self.ticketRef = acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTicket)
-            ?? panic("Could not borrow owner's LenderTicket reference")
+            ?? panic("Could not borrow lender's LenderTicket reference")
 
         let vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Could not borrow owner's vault reference")
+            ?? panic("Could not borrow lender's vault reference")
 
         self.temporaryVault <- vaultRef.withdraw(amount: LendAmount) as! @FlowToken.Vault
     }
@@ -31,7 +31,7 @@ transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, Lend
 
         let lendingPlaceRef = borrower.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace)
             .borrow()
-            ?? panic("Could not borrow seller's sale reference")
+            ?? panic("Could not borrow borrower's NFT Lending Place recource")
 
         lendingPlaceRef.lend(uuid: Uuid, recipient: LenderAddress, lendAmount: <-self.temporaryVault, ticket:  self.ticketRef)
     }

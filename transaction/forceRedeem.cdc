@@ -6,16 +6,16 @@ transaction(Uuid: UInt64, BorrowerAddress: Address) {
 
     prepare(acct: AuthAccount) {
 
-        let seller = getAccount(BorrowerAddress)
+        let borrower = getAccount(BorrowerAddress)
 
-        let saleRef = seller.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace)
+        let lendingPlace = borrower.getCapability<&AnyResource{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace)
             .borrow()
-            ?? panic("Could not borrow seller's sale reference")
+            ?? panic("Could not borrow borrower's NFT Lending Place resource")
 
         let ticketRef =  acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTicket)
-            ?? panic("Could not borrow owner's LenderTicket reference")
+            ?? panic("Could not borrow lender's LenderTicket resource")
            
-        let returnNft <- saleRef.forcedRedeem(uuid: Uuid, lendticket: ticketRef)
+        let returnNft <- lendingPlace.forcedRedeem(uuid: Uuid, lendticket: ticketRef)
 
         let collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
             ?? panic("Could not borrow owner's NFT collection reference")

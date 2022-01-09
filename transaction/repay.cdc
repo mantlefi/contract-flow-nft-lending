@@ -12,14 +12,15 @@ transaction(Uuid: UInt64, RepayAmount: UFix64) {
     prepare(acct: AuthAccount) {
 
         let vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Could not borrow owner's vault reference")
+            ?? panic("Could not borrow borrower's vault reference")
 
         self.temporaryVault <- vaultRef.withdraw(amount: RepayAmount) as! @FlowToken.Vault
 
         self.collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
-            ?? panic("Could not borrow owner's NFT collection reference")
+            ?? panic("Could not borrow borrower's NFT collection reference")
+
          self.landingPlaceRef =  acct.borrow<&NFTLendingPlace.LendingCollection>(from: /storage/NFTLendingPlace)
-            ?? panic("Could not borrow owner's LenderTicket reference")
+            ?? panic("Could not borrow borrower's LenderTicket reference")
     }
 
     execute {
