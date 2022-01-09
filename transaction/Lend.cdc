@@ -1,10 +1,7 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
 import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
-import Evolution from 0xEVOLUTIONADDRESS
 
-// This transaction let lender lend the flow to borrower
+// Let the lender lend FLOW to borrower
 transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, LendAmount: UFix64) {
 
     let temporaryVault: @FlowToken.Vault
@@ -14,13 +11,13 @@ transaction(BorrowerAddress: Address, LenderAddress: Address, Uuid: UInt64, Lend
     prepare(acct: AuthAccount) {
 
         // Init
-        if acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTIcket) == nil {
+        if acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTicket) == nil {
             let lendingTicket <- NFTLendingPlace.createLenderTicket()
-            acct.save(<-lendingTicket, to: /storage/NFTLendingPlaceLenderTIcket)
+            acct.save(<-lendingTicket, to: /storage/NFTLendingPlaceLenderTicket)
         }
 
-        self.ticketRef = acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTIcket)
-            ?? panic("Could not borrow a reference to the owner's LenderTicket")
+        self.ticketRef = acct.borrow<&NFTLendingPlace.LenderTicket>(from: /storage/NFTLendingPlaceLenderTicket)
+            ?? panic("Could not borrow owner's LenderTicket reference")
 
         let vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow owner's vault reference")

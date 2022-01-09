@@ -1,10 +1,8 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
 import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
-import Evolution from 0xEVOLUTIONADDRESS
 
-// This transaction let borrower repay the Flow
+// Let the borrower to repay FLOW
 transaction(Uuid: UInt64, RepayAmount: UFix64) {
 
     let temporaryVault: @FlowToken.Vault
@@ -19,9 +17,9 @@ transaction(Uuid: UInt64, RepayAmount: UFix64) {
         self.temporaryVault <- vaultRef.withdraw(amount: RepayAmount) as! @FlowToken.Vault
 
         self.collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
-            ?? panic("Could not borrow owner's nft collection reference")
+            ?? panic("Could not borrow owner's NFT collection reference")
          self.landingPlaceRef =  acct.borrow<&NFTLendingPlace.LendingCollection>(from: /storage/NFTLendingPlace)
-            ?? panic("Could not borrow a reference to the owner's LenderTicket")
+            ?? panic("Could not borrow owner's LenderTicket reference")
     }
 
     execute {

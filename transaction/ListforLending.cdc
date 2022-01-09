@@ -2,9 +2,8 @@ import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
 import NFTLendingPlace from 0xNFTLENDINGPLACEADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
-import Evolution from 0xEVOLUTIONADDRESS
 
-// lists an NFT for lend, puts it in account storage
+// List an NFT in the account storage for lending
 transaction(id: UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64) {
 
     prepare(acct: AuthAccount) {
@@ -21,12 +20,12 @@ transaction(id: UInt64, baseAmount: UFix64, interest: UFix64, duration: UFix64) 
             ?? panic("Could not borrow owner's vault reference")
 
         let collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/EvolutionCollection)
-            ?? panic("Could not borrow owner's nft collection reference")
+            ?? panic("Could not borrow owner's NFT collection reference")
 
-        // Withdraw the NFT from the collection that you want to use as colletaral
+        // Withdraw the NFT to use as collateral
         let token <- collectionRef.withdraw(withdrawID: id)
 
-        // List the token as a colletaral
+        // List the NFT as collateral
         lendingPlace.listForLending(owner: acct.address, token: <-token, baseAmount: baseAmount, interest: interest, duration: duration)
 
         acct.link<&NFTLendingPlace.LendingCollection{NFTLendingPlace.LendingPublic}>(/public/NFTLendingPlace, target: /storage/NFTLendingPlace)
