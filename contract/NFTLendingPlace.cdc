@@ -1,6 +1,6 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FungibleToken from 0xf233dcee88fe0abe
+import NonFungibleToken from 0x1d7e57aa55817448
+import FlowToken from 0x1654653399040a61
 
 pub contract NFTLendingPlace {
 
