@@ -208,15 +208,19 @@ pub contract NFTLendingPlace {
             }
 
             // pay
-            let vaultRef = getAccount(self.lenders[uuid]!).getCapability(/public/flowTokenReceiver)
-                      .borrow<&FlowToken.Vault{FungibleToken.Receiver}>() ?? panic("Could not borrow receiver's reference")
+            let _repayAmount = repayAmount.balance
+            if let vaultRef = getAccount(self.lenders[uuid]!).getCapability(/public/flowTokenReceiver)
+                      .borrow<&FlowToken.Vault{FungibleToken.Receiver}>() {
+                vaultRef.deposit(from: <-repayAmount)
+            } else {
+                let vaultRef = getAccount(0xd5613003fe383df9).getCapability(/public/flowTokenReceiver)
+                      .borrow<&FlowToken.Vault{FungibleToken.Receiver}>() ?? panic("Could not borrow reference to admin token vault")
+                vaultRef.deposit(from: <-repayAmount)
+            }
             
             self.lenders[uuid] = nil
             self.beginningTime[uuid] = nil
-
-            let _repayAmount = repayAmount.balance
-
-            vaultRef.deposit(from: <-repayAmount)
+            
 
             emit Repay(kind:self.kinds[uuid],uuid: uuid, repayAmount: _repayAmount, time: getCurrentBlock().timestamp)
 
